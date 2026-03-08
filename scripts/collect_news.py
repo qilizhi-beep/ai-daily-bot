@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os, re, datetime, feedparser, socket
 from pathlib import Path
-import google.generativeai as genai
+from openai import OpenAI
 
 socket.setdefaulttimeout(8)
 
@@ -39,8 +39,10 @@ def fetch_news(hours=26):
     return articles
 
 def generate_report(articles, today):
-    genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-    model = genai.GenerativeModel("gemini-2.0-flash")
+    client = OpenAI(
+        api_key=os.environ["ARK_API_KEY"],
+        base_url="https://ark.cn-beijing.volces.com/api/v3"
+    )
     news_text = "\n\n".join([
         f"[{i+1}] 来源:{a['source']}\n标题:{a['title']}\n摘要:{a['summary']}\n链接:{a['link']}"
         for i, a in enumerate(articles[:40])
@@ -65,19 +67,23 @@ def generate_report(articles, today):
 
 ---
 > ⚠️ 内容由AI辅助整理，请以原文为准。"""
-    response = model.generate_content(prompt)
-    return response.text
+
+    resp = client.chat.completions.create(
+        model="ep-20260308193214-4sb77",
+        messages=[{"role": "user", "content": prompt}]
+    )
+    return resp.choices[0].message.content
 
 def main():
     today = datetime.date.today().strftime("%Y-%m-%d")
     print(f"\n{'='*50}\n🚀 AI日报生成 — {today}\n{'='*50}\n")
-    if not os.getenv("GEMINI_API_KEY"):
-        print("❌ 未设置 GEMINI_API_KEY"); exit(1)
+    if not os.getenv("ARK_API_KEY"):
+        print("❌ 未设置 ARK_API_KEY"); exit(1)
     print("📡 抓取新闻...")
     articles = fetch_news()
     if len(articles) < 2:
         print("⚠️ 新闻太少"); exit(1)
-    print("🤖 Gemini 整理中...")
+    print("🤖 豆包整理中...")
     report = generate_report(articles, today)
     Path("BACKUP").mkdir(exist_ok=True)
     out = Path(f"BACKUP/{today}.md")
