@@ -1,0 +1,32 @@
+name: 🤖 AI每日早报
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安装依赖
+        run: pip install google-generativeai feedparser requests
+
+      - name: 生成日报
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python scripts/collect_news.py
+
+      - name: 提交日报
+        run: |
+          git config user.email "bot@github.com"
+          git config user.name "AI Bot"
+          git add BACKUP/
+          git diff --staged --quiet || git commit -m "📰 AI早报 $(date '+%Y-%m-%d')"
+          git push
