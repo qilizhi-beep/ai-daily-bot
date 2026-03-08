@@ -1,4 +1,4 @@
-name: 🤖 AI每日早报
+name: AI Daily News
 
 on:
   schedule:
@@ -15,18 +15,18 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: 安装依赖
-       run: pip install openai feedparser requests
+      - name: Install deps
+        run: pip install openai feedparser requests
 
-      - name: 生成日报
+      - name: Generate report
         env:
           ARK_API_KEY: ${{ secrets.ARK_API_KEY }}
         run: python scripts/collect_news.py
 
-      - name: 提交日报
+      - name: Commit
         run: |
           git config user.email "bot@github.com"
           git config user.name "AI Bot"
           git add BACKUP/
-          git diff --staged --quiet || git commit -m "📰 AI早报 $(date '+%Y-%m-%d')"
+          git diff --staged --quiet || git commit -m "Daily AI report $(date '+%Y-%m-%d')"
           git push
