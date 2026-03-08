@@ -40,7 +40,7 @@ def fetch_news(hours=26):
 
 def generate_report(articles, today):
     genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("gemini-2.0-flash")
     news_text = "\n\n".join([
         f"[{i+1}] 来源:{a['source']}\n标题:{a['title']}\n摘要:{a['summary']}\n链接:{a['link']}"
         for i, a in enumerate(articles[:40])
