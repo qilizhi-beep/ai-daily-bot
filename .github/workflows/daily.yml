@@ -32,3 +32,11 @@ jobs:
           git add BACKUP/
           git diff --staged --quiet || git commit -m "Daily AI report $(date '+%Y-%m-%d')"
           git push
+
+      - name: Send to Feishu
+        run: |
+          TODAY=$(date '+%Y-%m-%d')
+          CONTENT=$(head -c 800 "BACKUP/${TODAY}.md" | sed 's/"/\\"/g' | tr '\n' ' ')
+          curl -X POST "${{ secrets.FEISHU_WEBHOOK }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"msg_type\":\"text\",\"content\":{\"text\":\"📰 AI早报 ${TODAY}\n\n${CONTENT}\n\n完整版：https://github.com/qilizhi-beep/ai-daily-bot/tree/main/BACKUP\"}}"
